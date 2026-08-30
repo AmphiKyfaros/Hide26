@@ -1,0 +1,213 @@
+@fast
+@cooldown 30s
+@using hide
+
+# reset variables for hidden state
+@var hiddenincabinet = "no"
+@var hiddeninbed = "no"
+
+# if player is already in a sequence, then just play some dialogue and exit the script early
+@if hunting == "yes"
+    @if dccounter == "yes"
+        @bypass /minecraft:kill {{player}}
+        @player &cPlease avoid logging out while in an unsafe location. You have been killed to prevent exploits.
+        @var dccounter = "no"
+    @else
+        @player &cIt looks like you've logged out while in an unsafe location! Please avoid doing this to prevent exploits.
+        @var dccounter = "yes"
+    @fi
+
+    @return
+@fi
+
+# if we get here, then the player is not in a sequence, so we can start the hunting sequence
+@var hunting = "yes"
+
+# pick a random monster to hunt the player, and a random delay of 1-20 seconds before the monster appears
+@define Int randommonster = Int(math::random(1.0D, 4.0D))
+@define Int huntdelay = Int(math::random(1.0D, 21.0D))
+
+# delay for the random amount of time before the monster appears
+@for Int i in list::range(0, huntdelay)
+    @delay 1s
+@done
+
+# if the player is in a death cutscene, then don't play the hunting sequence
+@if dying == "yes"
+    @var hunting = "no"
+    @return
+@fi
+
+# Monster #1: Cabinet Hunting Monster
+@if randommonster == 1
+    
+    # play the cutscene for the cabinet hunting monster
+    @bypass /title {{player}} title {"text":"HIDE","color":"red"}
+    @bypass /playsound entity.iron_golem.step master {{player}} ~ ~ ~ 1
+    @delay 1s
+    @bypass /title {{player}} clear
+    @delay 14s
+    
+    # if the player is dying, then don't play the cutscene
+    @if dying == "yes"
+        @var hunting = "no"
+        @return
+    @fi
+    
+    # if the player is hidden in the cabinet, then play the cutscene for the monster leaving
+    @if hiddenincabinet == "yes"
+        @bypass /title {{player}} title {"text":"It's gone...","color":"white"}
+        @bypass /playsound ambient.cave master {{player}}
+        
+    # if the player is hidden in the bed, then play the cutscene for the monster leaving
+    @elseif hiddeninbed == "yes"
+        @bypass /playsound block.wooden_door.open master {{player}}
+        @delay 1s
+        
+        @if Region("hiding", "Theta").containsPlayer(player) && dying == "no" && dccheck == "no"
+            @bypass /execute in minecraft:theta run teleport {{player}} -9875.5 95 8222.5
+            @bypass /playsound entity.enderman.death master {{player}}
+            @delay 3s
+            @if Region("hidedeaths", "Theta").containsPlayer(player) && dccheck == "no"
+                @bypass /execute in minecraft:theta run teleport {{player}} -9854.5 95 8202.3
+                @var diedtocabinet = diedtocabinet + 1
+                @var lastdeath = "cabinet"
+            @else
+                @var yeroc = "true"
+                @player Your run has been invalidated. Please wait for the cutscene to end and then /kill to restart or it will not count as a completion. Please avoid logging out or using /kill while in the map to prevent this from happening again.
+            @fi
+            
+        @elseif Region("hiding", "Theta").containsPlayer(player) && dying == "yes" && dccheck == "no"
+            @delay 1s
+        @else
+            @var yeroc = "true"
+            @player Your run has been invalidated. Please wait for the cutscene to end and then /kill to restart or it will not count as a completion. Please avoid logging out or using /kill while in the map to prevent this from happening again.
+        @fi
+        
+    # if the player is not hidden, then play the cutscene for the monster hunting the player
+    @else
+        @bypass /effect give {{player}} blindness 11 1
+        @bypass /execute in minecraft:theta run teleport {{player}} -9795.5 94 8210.5
+        @bypass /playsound entity.evoker.ambient master {{player}} ~ ~ ~ 1
+        @delay 6s
+        @bypass /execute in minecraft:theta run teleport {{player}} -9795.5 144 8210.5
+        @delay 4s
+        @if Region("hidedeathcorridor", "Theta").containsPlayer(player) && dying == "no" && dccheck == "no"
+            @bypass /execute in minecraft:theta run teleport {{player}} -9854.5 95 8202.5 0 0
+            @var diedtocabinet = diedtocabinet + 1
+            @var lastdeath = "cabinet"
+        @elseif Region("hiding", "Theta").containsPlayer(player) && dying == "yes" && dccheck == "no"
+            @delay 1s
+        @else
+            @var yeroc = "true"
+            @player Your run has been invalidated. Please wait for the cutscene to end and then /kill to restart or it will not count as a completion. Please avoid logging out or using /kill while in the map to prevent this from happening again.
+        @fi
+    @fi
+    
+# Monster #2: Bed Hunting Monster
+@elseif randommonster == 2
+    # play the cutscene for the cabinet hunting monster
+    @bypass /title {{player}} title {"text":"HIDE","color":"red","italic":true}
+    @bypass /playsound entity.iron_golem.step master {{player}} ~ ~ ~ 1
+    @delay 1s
+    @bypass /title {{player}} clear
+    @delay 14s
+    
+    # if the player is dying, then don't play the cutscene
+    @if dying == "yes"
+        @var hunting = "no"
+        @return
+    @fi
+    
+    # if the player is hidden in the bed, then play the cutscene for the monster leaving
+    @if hiddeninbed == "yes"
+        @bypass /title {{player}} title {"text":"It's gone...","color":"white"}
+        @bypass /playsound ambient.cave master {{player}}
+        
+    # if the player is hidden in the cabinet, then play the cutscene for the monster leaving
+    @elseif hiddenincabinet == "yes"
+        @bypass playsound block.wooden_door.open master {{player}}
+        @delay 1s
+        @if Region("hiding", "Theta").containsPlayer(player) && dying == "no" && dccheck == "no"
+            @bypass /execute in minecraft:theta run teleport {{player}} -9869.5 95 8221.3
+            @bypass playsound entity.enderman.death master {{player}}
+            @delay 3s
+            @if Region("hidedeaths", "Theta").containsPlayer(player) && dccheck == "no"
+                @bypass /execute in minecraft:theta run teleport {{player}} -9854.5 95 8202.3
+                @var diedtobed = diedtobed + 1
+                @var lastdeath = "bed"
+            @else
+                @var yeroc = "true"
+                @player Your run has been invalidated. Please wait for the cutscene to end and then /kill to restart or it will not count as a completion. Please avoid logging out or using /kill while in the map to prevent this from happening again.
+            @fi
+        @elseif Region("hiding", "Theta").containsPlayer(player) && dying == "yes" && dccheck == "no"
+            @delay 1s
+        @else
+            @var yeroc = "true"
+            @player Your run has been invalidated. Please wait for the cutscene to end and then /kill to restart or it will not count as a completion. Please avoid logging out or using /kill while in the map to prevent this from happening again.
+        @fi
+        
+    # if the player is not hidden, then play the cutscene for the monster hunting the player
+    @else
+        @bypass /effect give {{player}} blindness 10 1
+        @bypass /execute in minecraft:theta run teleport {{player}} -9795.5 94 8210.5
+        @bypass /playsound entity.evoker.ambient master {{player}} ~ ~ ~ 1
+        @delay 6s
+        @bypass /execute in minecraft:theta run teleport {{player}} -9795.5 144 8210.5
+        @delay 4s
+        @if Region("hidedeathcorridor", "Theta").containsPlayer(player) && dying == "no" && dccheck == "no"
+            @bypass /execute in minecraft:theta run teleport {{player}} -9854.5 95 8202.5 0 0
+            @var diedtobed = diedtobed + 1
+            @var lastdeath = "bed"
+        @elseif Region("hiding", "Theta").containsPlayer(player) && dying == "yes" && dccheck == "no"
+            @delay 1s
+        @else
+            @var yeroc = "true"
+            @player Your run has been invalidated. Please wait for the cutscene to end and then /kill to restart or it will not count as a completion. Please avoid logging out or using /kill while in the map to prevent this from happening again.
+        @fi
+    @fi
+    
+# Monster #3: Watching Monster
+@elseif randommonster == 3
+    
+    # add a carved pumpkin to the player's head
+    @bypass /item replace entity {{player}} armor.head with carved_pumpkin[enchantments={levels:{"minecraft:binding_curse":1,"minecraft:vanishing_curse":1}}] 1
+    @delay 3s
+    @var watchPos = player.getPosition()
+    @delay 3s
+    
+    # check if the player is still in the same position, and if so, play the cutscene for the watching monster leaving
+    @if watchPos == player.getPosition()
+        @bypass clear {{player}}
+        @bypass /title {{player}} title {"text":"It's gone...","color":"white"}
+        @bypass /playsound ambient.cave master {{player}}
+        @var hunting = "no"
+        @return
+    @fi
+    
+    # if the player is dying, then don't play the cutscene
+    @if dying == "yes"
+        @var hunting = "no"
+        @return
+    @fi
+    
+    # get rid of the carved pumpkin from the player's head
+    @bypass clear {{player}}
+
+    # play the cutscene for the watching monster hunting the player
+    @bypass /execute in minecraft:theta run teleport {{player}} -9862.5 98 8220.5 0 0
+    @bypass /playsound entity.evoker.ambient master {{player}} ~ ~ ~ 1
+    @delay 6s
+    @bypass /execute in minecraft:theta run teleport {{player}} -9862.5 98 8213.5 0 0
+    @delay 4s
+    @if Region("hidedeaths", "Theta").containsPlayer(player) && dccheck == "no"
+        @bypass /execute in minecraft:theta run teleport {{player}} -9854.5 95 8202.5 0 0
+        @var diedtowatch = diedtowatch + 1
+        @var lastdeath = "watch"
+    @else
+        @var yeroc = "true"
+        @player Your run has been invalidated. Please wait for the cutscene to end and then /kill to restart or it will not count as a completion. Please avoid logging out or using /kill while in the map to prevent this from happening again.
+    @fi
+@fi
+
+@var hunting = "no"
